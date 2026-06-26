@@ -12,10 +12,11 @@ import { RemindersDashboard } from './components/RemindersDashboard';
 import { LoginScreen } from './components/LoginScreen';
 import { FinancialAnalytics } from './components/FinancialAnalytics';
 import { DischargeLAMA } from './components/DischargeLAMA';
+import { MedicalHistory } from './components/MedicalHistory';
 import type { Patient, Appointment, Medicine } from './types';
 
 export type ViewMode = 'grid' | 'list' | 'compact';
-type ActiveTab = 'dashboard' | 'patients' | 'appointments' | 'pharmacy' | 'reminders' | 'analytics' | 'discharge';
+type ActiveTab = 'dashboard' | 'patients' | 'appointments' | 'pharmacy' | 'reminders' | 'analytics' | 'discharge' | 'history';
 
 function App() {
   const [patients, setPatients] = useState<Patient[]>(() => {
@@ -176,6 +177,10 @@ function App() {
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
           Appointments
         </button>
+        <button className={`nav-tab ${activeTab === 'history' ? 'active' : ''}`} onClick={() => setActiveTab('history')}>
+          <span style={{ fontSize: 18 }}>📂</span>
+          History
+        </button>
         <button className={`nav-tab ${activeTab === 'pharmacy' ? 'active' : ''}`} onClick={() => setActiveTab('pharmacy')}>
           <span style={{ fontSize: 18 }}>💊</span>
           Pharmacy
@@ -284,6 +289,11 @@ function App() {
         {/* Analytics Tab */}
         {activeTab === 'analytics' && userRole === 'Admin' && (
           <FinancialAnalytics patients={patients} />
+        )}
+
+        {/* History Tab */}
+        {activeTab === 'history' && (
+          <MedicalHistory patients={patients} onUpdatePatient={handleUpdatePatient} />
         )}
 
         {/* Discharge Tab */}
