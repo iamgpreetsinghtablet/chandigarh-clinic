@@ -46,6 +46,15 @@ export interface Note {
   author: string;
 }
 
+export interface Medicine {
+  id: string;
+  name: string;
+  stock: number;
+  unit: string;
+  cost: number;
+  expiry: string;
+}
+
 export interface Patient {
   id: string;
   patientId: string;
@@ -68,6 +77,7 @@ export interface Patient {
   visits: Visit[];
   vitals: Vital[];
   notes: Note[];
+  dentalNotes?: Record<number, string>; // Maps tooth number to note
   photoUrl: string | null;
   createdAt: number;
 }

@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import type { Patient, Visit, Vital, Note } from '../types';
+import { DentalChart } from './DentalChart';
 
 interface PatientDetailProps {
   patient: Patient;
@@ -7,12 +8,13 @@ interface PatientDetailProps {
   onClose: () => void;
 }
 
-type TabKey = 'visits' | 'vitals' | 'notes' | 'attachments';
+type TabKey = 'visits' | 'vitals' | 'notes' | 'dental' | 'attachments';
 
 const TABS: { key: TabKey; label: string }[] = [
   { key: 'visits', label: 'Visits' },
   { key: 'vitals', label: 'Vitals' },
   { key: 'notes', label: 'Notes' },
+  { key: 'dental', label: 'Dental Chart' },
   { key: 'attachments', label: 'Attachments' },
 ];
 
@@ -366,6 +368,14 @@ const PatientDetail: React.FC<PatientDetailProps> = ({ patient, onUpdate, onClos
                   </div>
                 )}
             </div>
+          )}
+
+          {/* ═══ DENTAL CHART ═══ */}
+          {activeTab === 'dental' && (
+            <DentalChart 
+              notes={patient.dentalNotes || {}} 
+              onChange={(updatedNotes) => onUpdate({ ...patient, dentalNotes: updatedNotes })} 
+            />
           )}
 
           {/* ═══ ATTACHMENTS ═══ */}

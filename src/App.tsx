@@ -7,10 +7,12 @@ import { PatientDetail } from './components/PatientDetail';
 import { AppointmentScheduler } from './components/AppointmentScheduler';
 import { ThemeToggle } from './components/ThemeToggle';
 import { SortFilter } from './components/SortFilter';
-import type { Patient, Appointment } from './types';
+import { Pharmacy } from './components/Pharmacy';
+import { RemindersDashboard } from './components/RemindersDashboard';
+import type { Patient, Appointment, Medicine } from './types';
 
 export type ViewMode = 'grid' | 'list' | 'compact';
-type ActiveTab = 'dashboard' | 'patients' | 'appointments';
+type ActiveTab = 'dashboard' | 'patients' | 'appointments' | 'pharmacy' | 'reminders';
 
 function App() {
   const [patients, setPatients] = useState<Patient[]>(() => {
@@ -20,6 +22,11 @@ function App() {
 
   const [appointments, setAppointments] = useState<Appointment[]>(() => {
     const saved = localStorage.getItem('appointments');
+    return saved ? JSON.parse(saved) : [];
+  });
+
+  const [inventory, setInventory] = useState<Medicine[]>(() => {
+    const saved = localStorage.getItem('inventory');
     return saved ? JSON.parse(saved) : [];
   });
 
@@ -44,6 +51,10 @@ function App() {
   useEffect(() => {
     localStorage.setItem('appointments', JSON.stringify(appointments));
   }, [appointments]);
+
+  useEffect(() => {
+    localStorage.setItem('inventory', JSON.stringify(inventory));
+  }, [inventory]);
 
   useEffect(() => {
     document.body.className = isDark ? '' : 'light';
@@ -145,6 +156,14 @@ function App() {
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
           Appointments
         </button>
+        <button className={`nav-tab ${activeTab === 'pharmacy' ? 'active' : ''}`} onClick={() => setActiveTab('pharmacy')}>
+          <span style={{ fontSize: 18 }}>💊</span>
+          Pharmacy
+        </button>
+        <button className={`nav-tab ${activeTab === 'reminders' ? 'active' : ''}`} onClick={() => setActiveTab('reminders')}>
+          <span style={{ fontSize: 18 }}>🔔</span>
+          Reminders
+        </button>
       </nav>
 
       <main>
@@ -218,6 +237,16 @@ function App() {
             onAdd={handleAddAppointment}
             onUpdate={handleUpdateAppointment}
           />
+        )}
+
+        {/* Pharmacy Tab */}
+        {activeTab === 'pharmacy' && (
+          <Pharmacy inventory={inventory} onUpdate={setInventory} />
+        )}
+
+        {/* Reminders Tab */}
+        {activeTab === 'reminders' && (
+          <RemindersDashboard appointments={appointments} patients={patients} />
         )}
       </main>
 
