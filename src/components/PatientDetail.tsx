@@ -75,7 +75,10 @@ const PatientDetail: React.FC<PatientDetailProps> = ({ patient, onUpdate, onClos
   const [draft, setDraft] = useState({ ...patient });
 
   /* ── Visit form ── */
-  const emptyVisit: Omit<Visit, 'id'> = { date: today(), diagnosis: '', symptoms: '', prescription: '', doctor: '', followUp: '', notes: '' };
+  const emptyVisit: Partial<Visit> = {
+  date: today(), diagnosis: '', symptoms: '', prescription: '', doctor: 'Dr. Amit Dayal', followUp: '', notes: '',
+  totalAmount: 0, discountAmount: 0, netAmount: 0, receivedAmount: 0, pendingAmount: 0
+};
   const [showVisitForm, setShowVisitForm] = useState(false);
   const [visitDraft, setVisitDraft] = useState(emptyVisit);
 
@@ -235,7 +238,28 @@ const PatientDetail: React.FC<PatientDetailProps> = ({ patient, onUpdate, onClos
                   <textarea className="form-control" placeholder="Prescription" rows={3} value={visitDraft.prescription} onChange={e => setVisitDraft({ ...visitDraft, prescription: e.target.value })} style={{ gridColumn: '1/-1' }} />
                   <input className="form-control" placeholder="Follow-up date" type="date" value={visitDraft.followUp} onChange={e => setVisitDraft({ ...visitDraft, followUp: e.target.value })} />
                   <input className="form-control" placeholder="Notes" value={visitDraft.notes} onChange={e => setVisitDraft({ ...visitDraft, notes: e.target.value })} />
-                  <button className="btn" onClick={addVisit} style={{ gridColumn: '1/-1' }}>Save Visit</button>
+                  
+                  <div style={{ gridColumn: '1/-1', borderTop: '1px solid var(--glass-border)', paddingTop: 10, marginTop: 10, display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10 }}>
+                    <h4 style={{ gridColumn: '1/-1', margin: '0 0 10px 0', color: 'var(--text-main)' }}>💳 Billing Details</h4>
+                    <input className="form-control" placeholder="Total Amount" type="number" value={visitDraft.totalAmount || ''} onChange={e => {
+                      const total = +e.target.value;
+                      const net = total - (visitDraft.discountAmount || 0);
+                      setVisitDraft({ ...visitDraft, totalAmount: total, netAmount: net, pendingAmount: net - (visitDraft.receivedAmount || 0) });
+                    }} />
+                    <input className="form-control" placeholder="Discount" type="number" value={visitDraft.discountAmount || ''} onChange={e => {
+                      const disc = +e.target.value;
+                      const net = (visitDraft.totalAmount || 0) - disc;
+                      setVisitDraft({ ...visitDraft, discountAmount: disc, netAmount: net, pendingAmount: net - (visitDraft.receivedAmount || 0) });
+                    }} />
+                    <input className="form-control" placeholder="Net Amount" type="number" value={visitDraft.netAmount || ''} disabled style={{ opacity: 0.7 }} />
+                    <input className="form-control" placeholder="Received" type="number" value={visitDraft.receivedAmount || ''} onChange={e => {
+                      const rec = +e.target.value;
+                      setVisitDraft({ ...visitDraft, receivedAmount: rec, pendingAmount: (visitDraft.netAmount || 0) - rec });
+                    }} />
+                    <input className="form-control" placeholder="Pending" type="number" value={visitDraft.pendingAmount || ''} disabled style={{ opacity: 0.7 }} />
+                  </div>
+
+                  <button className="btn" onClick={addVisit} style={{ gridColumn: '1/-1', marginTop: 10 }}>Save Visit & Billing</button>
                 </div>
               )}
 
@@ -261,6 +285,17 @@ const PatientDetail: React.FC<PatientDetailProps> = ({ patient, onUpdate, onClos
                         {v.prescription && <div style={{ background: 'var(--bg-dark)', padding: 12, borderRadius: 8, whiteSpace: 'pre-wrap', margin: '8px 0' }}><strong>Prescription:</strong><br />{v.prescription}</div>}
                         {v.followUp && <p><strong>Follow-up:</strong> {v.followUp}</p>}
                         {v.notes && <p><strong>Notes:</strong> {v.notes}</p>}
+                        
+                        {(v.totalAmount !== undefined) && (
+                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16, marginTop: 12, marginBottom: 12, fontSize: 13, color: 'var(--text-main)', background: 'var(--bg-dark)', padding: 10, borderRadius: 8 }}>
+                            <div><strong>Total:</strong> ₹{v.totalAmount}</div>
+                            <div><strong>Discount:</strong> ₹{v.discountAmount}</div>
+                            <div><strong>Net:</strong> ₹{v.netAmount}</div>
+                            <div style={{ color: 'var(--success)' }}><strong>Received:</strong> ₹{v.receivedAmount}</div>
+                            <div style={{ color: 'var(--danger)' }}><strong>Pending:</strong> ₹{v.pendingAmount}</div>
+                          </div>
+                        )}
+
                         <button className="btn outline" style={{ marginTop: 8, fontSize: 13 }} onClick={e => { e.stopPropagation(); printPrescription(v, patient); }}>🖨 Print Prescription</button>
                       </div>
                     )}

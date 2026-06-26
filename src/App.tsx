@@ -9,10 +9,13 @@ import { ThemeToggle } from './components/ThemeToggle';
 import { SortFilter } from './components/SortFilter';
 import { Pharmacy } from './components/Pharmacy';
 import { RemindersDashboard } from './components/RemindersDashboard';
+import { LoginScreen } from './components/LoginScreen';
+import { FinancialAnalytics } from './components/FinancialAnalytics';
+import { DischargeLAMA } from './components/DischargeLAMA';
 import type { Patient, Appointment, Medicine } from './types';
 
 export type ViewMode = 'grid' | 'list' | 'compact';
-type ActiveTab = 'dashboard' | 'patients' | 'appointments' | 'pharmacy' | 'reminders';
+type ActiveTab = 'dashboard' | 'patients' | 'appointments' | 'pharmacy' | 'reminders' | 'analytics' | 'discharge';
 
 function App() {
   const [patients, setPatients] = useState<Patient[]>(() => {
@@ -43,6 +46,15 @@ function App() {
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
   const [filterGender, setFilterGender] = useState('All');
   const [filterBloodGroup, setFilterBloodGroup] = useState('All');
+
+  // Auth State
+  const [isLoggedIn, setIsLoggedIn] = useState(() => localStorage.getItem('isLoggedIn') === 'true');
+  const [userRole, setUserRole] = useState<'Admin' | 'Staff'>(() => (localStorage.getItem('userRole') as 'Admin' | 'Staff') || 'Staff');
+
+  useEffect(() => {
+    localStorage.setItem('isLoggedIn', String(isLoggedIn));
+    localStorage.setItem('userRole', userRole);
+  }, [isLoggedIn, userRole]);
 
   useEffect(() => {
     localStorage.setItem('patients', JSON.stringify(patients));
@@ -129,6 +141,10 @@ function App() {
     return result;
   }, [patients, searchQuery, filterGender, filterBloodGroup, sortBy, sortDir]);
 
+  if (!isLoggedIn) {
+    return <LoginScreen onLogin={(role) => { setIsLoggedIn(true); setUserRole(role); }} />;
+  }
+
   return (
     <div className="app-container">
       <header>
@@ -137,6 +153,10 @@ function App() {
           <p>Advanced Patient Management System</p>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+          <div style={{ color: 'var(--text-muted)', fontSize: 14 }}>
+            Logged in as <strong>{userRole}</strong>
+            <button className="btn outline" style={{ marginLeft: 10, padding: '4px 10px' }} onClick={() => setIsLoggedIn(false)}>Logout</button>
+          </div>
           <ExportTools patients={patients} selectedPatient={selectedPatient} />
           <ThemeToggle isDark={isDark} onToggle={() => setIsDark(!isDark)} />
         </div>
@@ -164,6 +184,18 @@ function App() {
           <span style={{ fontSize: 18 }}>🔔</span>
           Reminders
         </button>
+        {userRole === 'Admin' && (
+          <>
+            <button className={`nav-tab ${activeTab === 'analytics' ? 'active' : ''}`} onClick={() => setActiveTab('analytics')}>
+              <span style={{ fontSize: 18 }}>📊</span>
+              Analytics
+            </button>
+            <button className={`nav-tab ${activeTab === 'discharge' ? 'active' : ''}`} onClick={() => setActiveTab('discharge')}>
+              <span style={{ fontSize: 18 }}>📄</span>
+              Discharge
+            </button>
+          </>
+        )}
       </nav>
 
       <main>
@@ -247,6 +279,16 @@ function App() {
         {/* Reminders Tab */}
         {activeTab === 'reminders' && (
           <RemindersDashboard appointments={appointments} patients={patients} />
+        )}
+
+        {/* Analytics Tab */}
+        {activeTab === 'analytics' && userRole === 'Admin' && (
+          <FinancialAnalytics patients={patients} />
+        )}
+
+        {/* Discharge Tab */}
+        {activeTab === 'discharge' && userRole === 'Admin' && (
+          <DischargeLAMA patients={patients} onDelete={handleDeletePatient} />
         )}
       </main>
 

@@ -26,6 +26,11 @@ export interface Visit {
   doctor: string;
   followUp: string;
   notes: string;
+  totalAmount: number;
+  discountAmount: number;
+  netAmount: number;
+  receivedAmount: number;
+  pendingAmount: number;
 }
 
 export interface Appointment {
